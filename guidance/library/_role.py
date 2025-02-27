@@ -1,27 +1,60 @@
-from .._utils import ContentCapture
+from .._ast import RoleEnd, RoleStart
+from ._block import Block, block
 
-async def role(role_name, hidden=False, _parser_context=None, **kwargs):
-    ''' A chat role block.
-    '''
-    block_content = _parser_context['block_content']
-    parser = _parser_context['parser']
-    variable_stack = _parser_context['variable_stack']
 
-    # capture the content of the block
-    with ContentCapture(variable_stack, hidden) as new_content:
-        
-        # send the role-start special tokens
-        new_content += parser.program.llm.role_start(role_name, **kwargs)
+# TODO HN: Add a docstring to better describe arbitrary role functions
+def role(role: str) -> Block:
+    return block(
+        name=None,
+        opener=RoleStart(role),
+        closer=RoleEnd(role),
+    )
 
-        # visit the block content
-        new_content += await parser.visit(
-            block_content,
-            variable_stack,
-            next_node=_parser_context["block_close_node"],
-            prev_node=_parser_context["prev_node"],
-            next_next_node=_parser_context["next_node"]
-        )
 
-        # send the role-end special tokens
-        new_content += parser.program.llm.role_end(role_name)
-role.is_block = True
+def system() -> Block:
+    """Indicate the 'system' prompt
+
+    A convention has grown up around 'chat' APIs that
+    prompts are split into three parts: system, user
+    and assistant.
+    This indicates the start of a 'system' block, which
+    provides background information to the LLM.
+
+        >>> with system():
+        >>>     lm += "A system prompt"
+
+    """
+    return role("system")
+
+
+def user() -> Block:
+    """Indicate the 'user' prompt
+
+    A convention has grown up around 'chat' APIs that
+    prompts are split into three parts: system, user
+    and assistant.
+    This indicates the start of a 'user' block, which
+    provides input to the LLM from the user.
+
+        >>> with user():
+        >>>     lm += "What the user said"
+
+    """
+    return role("user")
+
+
+def assistant() -> Block:
+    """Indicate the 'assistant' prompt
+
+    A convention has grown up around 'chat' APIs that
+    prompts are split into three parts: system, user
+    and assistant.
+    This indicates the start of an 'assistant' block, which
+    marks LLM response (or where the LLM will generate
+    the next response).
+
+        >>> with assistant():
+        >>>     lm += gen(name="model_output", max_tokens=20)
+
+    """
+    return role("assistant")

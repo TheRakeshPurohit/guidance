@@ -61,6 +61,9 @@ autodoc_default_options = {
 autosummary_generate = True
 numpydoc_show_class_members = False
 
+# Don't try to execute the notebooks, they overwhelm RTD
+nbsphinx_execute = 'never'
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -79,7 +82,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Guidance'
-copyright = '2023, Microsoft'
+copyright = '2023, Guidance contributors'
 author = 'Scott Lundberg, Marco Tulio Ribeiro'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -385,7 +388,7 @@ texinfo_documents = [
 
 
 def setup(app):
-    import guidance
+    from guidance import guidance
     app.connect('build-finished', build_finished)
 
 
